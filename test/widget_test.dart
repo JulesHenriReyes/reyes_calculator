@@ -1,30 +1,138 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:reyes_calculator/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Calculator renders initial widgets correctly',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const CalculatorApp());
 
-    // Verify that our counter starts at 0.
+    expect(find.text('My Stateful Calculator'), findsOneWidget);
+    expect(find.text('BASIC CALCULATOR'), findsOneWidget);
+    expect(find.text('First Number'), findsOneWidget);
+    expect(find.text('Second Number'), findsOneWidget);
+    expect(find.text('Enter two numbers'), findsOneWidget);
     expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Created by: Jules\nSection: 3450'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('Performs addition correctly', (WidgetTester tester) async {
+    await tester.pumpWidget(const CalculatorApp());
+
+    final firstField = find.byType(TextField).at(0);
+    final secondField = find.byType(TextField).at(1);
+
+    await tester.enterText(firstField, '12');
+    await tester.enterText(secondField, '8');
+
+    await tester.tap(find.widgetWithText(ElevatedButton, '+'));
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('20.0'), findsOneWidget);
+    expect(find.text('12.0 + 8.0'), findsOneWidget);
+  });
+
+  testWidgets('Performs subtraction correctly', (WidgetTester tester) async {
+    await tester.pumpWidget(const CalculatorApp());
+
+    final firstField = find.byType(TextField).at(0);
+    final secondField = find.byType(TextField).at(1);
+
+    await tester.enterText(firstField, '25');
+    await tester.enterText(secondField, '10');
+
+    await tester.tap(find.widgetWithText(ElevatedButton, '−'));
+    await tester.pump();
+
+    expect(find.text('15.0'), findsOneWidget);
+    expect(find.text('25.0 - 10.0'), findsOneWidget);
+  });
+
+  testWidgets('Performs multiplication correctly', (WidgetTester tester) async {
+    await tester.pumpWidget(const CalculatorApp());
+
+    final firstField = find.byType(TextField).at(0);
+    final secondField = find.byType(TextField).at(1);
+
+    await tester.enterText(firstField, '6');
+    await tester.enterText(secondField, '7');
+
+    await tester.tap(find.widgetWithText(ElevatedButton, '×'));
+    await tester.pump();
+
+    expect(find.text('42.0'), findsOneWidget);
+    expect(find.text('6.0 × 7.0'), findsOneWidget);
+  });
+
+  testWidgets('Performs division correctly', (WidgetTester tester) async {
+    await tester.pumpWidget(const CalculatorApp());
+
+    final firstField = find.byType(TextField).at(0);
+    final secondField = find.byType(TextField).at(1);
+
+    await tester.enterText(firstField, '20');
+    await tester.enterText(secondField, '4');
+
+    await tester.tap(find.widgetWithText(ElevatedButton, '÷'));
+    await tester.pump();
+
+    expect(find.text('5.0'), findsOneWidget);
+    expect(find.text('20.0 ÷ 4.0'), findsOneWidget);
+  });
+
+  testWidgets('Handles division by zero properly', (WidgetTester tester) async {
+    await tester.pumpWidget(const CalculatorApp());
+
+    final firstField = find.byType(TextField).at(0);
+    final secondField = find.byType(TextField).at(1);
+
+    await tester.enterText(firstField, '10');
+    await tester.enterText(secondField, '0');
+
+    await tester.tap(find.widgetWithText(ElevatedButton, '÷'));
+    await tester.pump();
+
+    expect(find.text('Cannot divide by zero'), findsOneWidget);
+    expect(find.text('Please change the second number'), findsOneWidget);
+  });
+
+  testWidgets('Handles invalid input gracefully', (WidgetTester tester) async {
+    await tester.pumpWidget(const CalculatorApp());
+
+    final firstField = find.byType(TextField).at(0);
+    final secondField = find.byType(TextField).at(1);
+
+    await tester.enterText(firstField, 'abc');
+    await tester.enterText(secondField, '5');
+
+    await tester.tap(find.widgetWithText(ElevatedButton, '+'));
+    await tester.pump();
+
+    expect(find.text('Invalid input'), findsOneWidget);
+    expect(find.text('Please enter two valid numbers'), findsOneWidget);
+  });
+
+  testWidgets('Clears inputs and resets state with Clear button',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const CalculatorApp());
+
+    final firstField = find.byType(TextField).at(0);
+    final secondField = find.byType(TextField).at(1);
+
+    await tester.enterText(firstField, '50');
+    await tester.enterText(secondField, '2');
+    await tester.tap(find.widgetWithText(ElevatedButton, '×'));
+    await tester.pump();
+
+    expect(find.text('100.0'), findsOneWidget);
+
+    // Scroll to and tap clear button
+    final clearButton = find.widgetWithText(OutlinedButton, 'Clear');
+    await tester.ensureVisible(clearButton);
+    await tester.tap(clearButton);
+    await tester.pump();
+
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('Enter two numbers'), findsOneWidget);
   });
 }
